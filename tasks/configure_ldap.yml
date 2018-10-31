@@ -9,14 +9,17 @@
 - name: Generate the private key for certificate request
   shell: openssl genrsa -des3 -passout pass:password -out my1.key 1024 chdir={{ openldap_server_app_path }}/certs/ 
          creates={{ openldap_server_app_path }}/certs/my1.key
-
+  when: openldap_server_enable_ssl
+  
 - name: Strip the passphrase from the key 
   shell: openssl rsa -in my1.key -passin pass:password -out my.key chdir={{ openldap_server_app_path }}/certs/ 
          creates={{ openldap_server_app_path }}/certs/my.key
-
+  when: openldap_server_enable_ssl
+  
 - name: Create and sign the the new certificate 
   shell: openssl req -new -x509 -subj '/C={{ openldap_server_country }}/ST={{ openldap_server_state }}/L={{ openldap_server_location }}/O={{ openldap_server_organization }}/CN={{ ansible_hostname }}/' -days 3650 -key my.key -out cert.crt -extensions v3_ca chdir={{ openldap_server_app_path }}/certs/   creates={{ openldap_server_app_path }}/certs/cert.crt
-
+  when: openldap_server_enable_ssl
+  
 - name: copy the supporting files
   copy: src=ldap dest=/etc/sysconfig/ldap mode=0755
   when: openldap_server_enable_ssl and ansible_os_family == 'RedHat'
